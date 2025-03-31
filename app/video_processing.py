@@ -1,12 +1,17 @@
 import cv2
 from ultralytics import solutions
 
-def process_video(video_path: str) -> int:
+def process_video(video_path: str) -> tuple:
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), "Error reading video file"
 
     # Get video properties
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
+
+    # Define output video path
+    output_path = video_path.replace(".mp4", "_processed.mp4")
+    out = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
 
     region_points = {
         "full-frame": [(0, 0), (w, 0), (w, h), (0, h)]
@@ -28,10 +33,19 @@ def process_video(video_path: str) -> int:
             break
 
         results = regioncounter(im0)
-        
-        # Extracting the count from results
+
+        # Extract count
         if hasattr(results, "region_counts") and "full-frame" in results.region_counts:
             total_count = max(total_count, results.region_counts["full-frame"])
 
+        # Draw detections on frame
+        if hasattr(results, "plot"):
+            im0 = results.plot()
+
+        # Write frame to output video
+        out.write(im0)
+
     cap.release()
-    return total_count
+    out.release()
+
+    return total_count, output_path

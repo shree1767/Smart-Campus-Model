@@ -17,8 +17,15 @@ def process_video_api():
     video_file.save(video_path)
 
     try:
-        count = process_video(video_path)
-        return jsonify({"count": count})
+        count, output_path = process_video(video_path)
+        
+        os.startfile(output_path)
+
+        return jsonify({
+            "count": count,
+            "message": "Processed video opened successfully."
+        })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

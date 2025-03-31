@@ -48,4 +48,5 @@ def process_video(video_path: str) -> tuple:
     cap.release()
     out.release()
 
+
     return total_count, output_path
